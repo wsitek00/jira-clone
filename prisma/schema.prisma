@@ -1,0 +1,45 @@
+// To mówi Prismie, jak łączyć się z bazą
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model 1: Tablica (np. "Projekt Marketingowy")
+model Board {
+  id          String   @id @default(cuid()) // Unikalne ID (np. cly4...)
+  title       String
+  createdAt   DateTime @default(now())
+  
+  columns     Column[] // Relacja: Jedna tablica ma wiele kolumn
+}
+
+// Model 2: Kolumna (np. "To Do", "In Progress", "Done")
+model Column {
+  id          String   @id @default(cuid())
+  title       String
+  order       Int      // Kolejność kolumny (0, 1, 2...)
+  
+  boardId     String
+  board       Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  
+  cards       Card[]   // Relacja: Jedna kolumna ma wiele kart (zadań)
+  
+  @@index([boardId])
+}
+
+// Model 3: Karta/Zadanie (To co będziesz przesuwać)
+model Card {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  // "?" oznacza, że opis jest opcjonalny
+  order       Int      // Kolejność karty w kolumnie
+  
+  columnId    String
+  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@index([columnId])
+}
